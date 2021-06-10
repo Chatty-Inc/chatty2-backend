@@ -30,10 +30,10 @@ function removeElem(arr, value) {
 }
 
 // Init WebSocket
-let wss
+let wss, server;
 if (debug) wss = new WebSocket.Server({ port: 8080 });
 else {
-    const server = https.createServer({
+    server = https.createServer({
         cert: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/fullchain.pem'),
         key: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/privkey.pem')
     });
@@ -232,4 +232,4 @@ wss.on('connection', (ws, req) => {
     })
 });
 
-if (!debug) server.listen(9094);
+if (!debug) server.listen(80);
