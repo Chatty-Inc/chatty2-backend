@@ -1,6 +1,8 @@
 const admin = require('firebase-admin');
 
 const WebSocket = require('ws');
+const fs = require('fs');
+const https = require('https');
 
 process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at: Promise', p, 'reason:', reason.stack);
@@ -25,28 +27,12 @@ function removeElem(arr, value) {
 }
 
 // Init WebSocket
-const wss = new WebSocket.Server({
-    port: 9094,
-    perMessageDeflate: {
-        zlibDeflateOptions: {
-            // See zlib defaults.
-            chunkSize: 1024,
-            memLevel: 7,
-            level: 3
-        },
-        zlibInflateOptions: {
-            chunkSize: 10 * 1024
-        },
-        // Other options settable:
-        clientNoContextTakeover: true, // Defaults to negotiated value.
-        serverNoContextTakeover: true, // Defaults to negotiated value.
-        serverMaxWindowBits: 10, // Defaults to negotiated value.
-        // Below options specified as default values.
-        concurrencyLimit: 10, // Limits zlib concurrency for perf.
-        threshold: 1024 // Size (in bytes) below which messages
-        // should not be compressed.
-    }
+const server = https.createServer({
+    cert: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/fullchain.pem'),
+    key: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/privkey.pem')
 });
+const wss = new WebSocket.Server({ server });
+
 // Init Firebase admin
 try {
     admin.initializeApp({
@@ -238,3 +224,5 @@ wss.on('connection', (ws, req) => {
         }
     })
 });
+
+server.listen(9094);
