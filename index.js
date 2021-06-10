@@ -17,6 +17,9 @@ const send = require('./fragments/send');
 const pubKeys = {};
 const signKeys = {};
 
+// Constants
+const debug = process.env['mode'] && process.env['mode'] === 'debug';
+
 // Utility functions
 function removeElem(arr, value) {
     var index = arr.indexOf(value);
@@ -27,11 +30,15 @@ function removeElem(arr, value) {
 }
 
 // Init WebSocket
-const server = https.createServer({
-    cert: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/fullchain.pem'),
-    key: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/privkey.pem')
-});
-const wss = new WebSocket.Server({ server });
+let wss
+if (debug) wss = new WebSocket.Server({ port: 8080 });
+else {
+    const server = https.createServer({
+        cert: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/fullchain.pem'),
+        key: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/privkey.pem')
+    });
+    wss = new WebSocket.Server({ server });
+}
 
 // Init Firebase admin
 try {
@@ -225,4 +232,4 @@ wss.on('connection', (ws, req) => {
     })
 });
 
-server.listen(9094);
+if (!debug) server.listen(9094);
