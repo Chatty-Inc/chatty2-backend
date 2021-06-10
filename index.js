@@ -72,7 +72,12 @@ wss.on('connection', (ws, req) => {
     setInterval(() => errAttempts++, 10000); // You get one "life" every 10s
 
     setTimeout(() => {
-        if (first && !uid) ws.close();
+        if (first && !uid) {
+            ws.close();
+            console.log('Closed client websocket');
+        }
+        console.log(uid)
+        console.log("ayo2")
     }, 500); // 500ms for client to identify itself
 
     ws.send('hi');
@@ -91,7 +96,6 @@ wss.on('connection', (ws, req) => {
     ws.on('message', async d => {
         console.log('Received message:', d);
         if (first) {
-            console.log(onlineUIDs)
             const info = tryParseJSON(d);
             first = false;
             if (!info || !info.uid || onlineUIDs.includes(info.uid)) {
