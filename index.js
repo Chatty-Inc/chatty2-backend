@@ -26,7 +26,7 @@ function removeElem(arr, value) {
 
 // Init WebSocket
 const wss = new WebSocket.Server({
-    port: 4000,
+    port: 9094,
     perMessageDeflate: {
         zlibDeflateOptions: {
             // See zlib defaults.
@@ -48,9 +48,16 @@ const wss = new WebSocket.Server({
     }
 });
 // Init Firebase admin
-admin.initializeApp({
-    credential: admin.credential.cert(process.env),
-});
+try {
+    admin.initializeApp({
+        credential: admin.credential.cert(process.env),
+    });
+} catch {
+    admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+    });
+}
+
 const db = admin.firestore();
 
 let onlineUIDs = [];
@@ -63,6 +70,7 @@ admin.firestore().collection("users").doc("banned").get().then(queryResult =>{
     bannedUID = queryResult.data().uid;
 });
 
+console.log('Ready to accept WebSocket connections');
 // Handle WebSocket events
 wss.on('connection', (ws, req) => {
     let first = true;
