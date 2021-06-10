@@ -29,6 +29,16 @@ function removeElem(arr, value) {
     return arr;
 }
 
+const reqHandler = (req, res) => {
+    // Send the hello world file from the filesystem
+    fs.readFile('index.html', 'utf-8', (e, d) => {
+        res.setHeader('Content-Type', 'text/html');
+        res.writeHead(200);
+        if (e) res.end(`<h1>We're experiencing some issues right now...</h1><p>${e.message}</p>`);
+        else res.end(d);
+    });
+}
+
 // Init WebSocket
 let wss, server;
 if (debug) wss = new WebSocket.Server({ port: 8080 });
@@ -36,7 +46,7 @@ else {
     server = https.createServer({
         cert: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/fullchain.pem'),
         key: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/privkey.pem')
-    });
+    }, reqHandler);
     wss = new WebSocket.Server({ server });
 }
 
@@ -232,4 +242,4 @@ wss.on('connection', (ws, req) => {
     })
 });
 
-if (!debug) server.listen(80);
+if (!debug) server.listen(443);
