@@ -44,8 +44,8 @@ let wss, server;
 if (debug) wss = new WebSocket.Server({ port: 8080 });
 else {
     server = https.createServer({
-        cert: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/fullchain.pem'),
-        key: fs.readFileSync('/etc/letsencrypt/live/api.chattyapp.cf/privkey.pem')
+        cert: fs.readFileSync('/etc/letsencrypt/live/' + (process.env['DOMAIN'] ?? 'api.chattyapp.cf') + '/fullchain.pem'),
+        key: fs.readFileSync('/etc/letsencrypt/live/' + (process.env['DOMAIN'] ?? 'api.chattyapp.cf') + '/privkey.pem')
     }, reqHandler);
     wss = new WebSocket.Server({ server });
 }
