@@ -1,8 +1,11 @@
 const admin = require('firebase-admin');
 
+// Server modules
 const WebSocket = require('ws');
 const fs = require('fs');
+const { join, extname } = require('path');
 const https = require('https');
+const mime = require('mime-types');
 
 process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at: Promise', p, 'reason:', reason.stack);
@@ -29,13 +32,24 @@ function removeElem(arr, value) {
     return arr;
 }
 
+let errorFile = '<h1>Reload this page</h1><p>We are experiencing some issues right now</p>';
+fs.readFile('404.html', 'utf-8', (e, d) => {
+    if (e) errorFile = '<h1>404</h1>';
+    else errorFile = d;
+});
+
 const reqHandler = (req, res) => {
+    console.log('Responding to HTTP request at', req.url);
     // Send the hello world file from the filesystem
-    fs.readFile('index.html', 'utf-8', (e, d) => {
-        res.setHeader('Content-Type', 'text/html');
-        res.writeHead(200);
-        if (e) res.end(`<h1>We're experiencing some issues right now...</h1><p>${e.message}</p>`);
+    const url = req.url === '/' ? 'index.html' : req.url;
+    fs.readFile(join('/home/chatty/chatty2-0', url), (e, d) => {
+        const mimeType = (mime.contentType(extname(url)) || 'application/octet-stream') + '; charset=UTF-8';
+        console.log('Content type:', mimeType);
+        res.setHeader('Content-Type', mimeType);
+        res.writeHead(e ? 404 : 200);
+        if (e) res.end(errorFile);
         else res.end(d);
+        res.end();
     });
 }
 

@@ -11,6 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "firebase-admin": "^9.8.0",
+    "mime-types": "^2.1.31",
+    "winston": "^3.3.3",
     "ws": "^7.4.5"
   }
 }
