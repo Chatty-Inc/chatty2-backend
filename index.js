@@ -58,8 +58,8 @@ let wss, server;
 if (debug) wss = new WebSocket.Server({ port: 8080 });
 else {
     server = https.createServer({
-        cert: fs.readFileSync('/etc/letsencrypt/live/' + (process.env['DOMAIN'] ?? 'api.chattyapp.cf') + '/fullchain.pem'),
-        key: fs.readFileSync('/etc/letsencrypt/live/' + (process.env['DOMAIN'] ?? 'api.chattyapp.cf') + '/privkey.pem')
+        cert: fs.readFileSync('/etc/letsencrypt/live/' + (process.env['DOMAIN'] || 'api.chattyapp.cf') + '/fullchain.pem'),
+        key: fs.readFileSync('/etc/letsencrypt/live/' + (process.env['DOMAIN'] || 'api.chattyapp.cf') + '/privkey.pem')
     }, reqHandler);
     wss = new WebSocket.Server({ server });
 }
@@ -147,7 +147,8 @@ wss.on('connection', (ws, req) => {
                     resp: 'txtMsg',
                     key: d.key,
                     uid: d.uid,
-                    sig: d.sig
+                    sig: d.sig,
+                    purpose: d.purpose,
                 }));
                 await db.collection('chats').doc('offline').collection(uid).doc(doc.id).delete();
                 // await doc.delete();
@@ -183,7 +184,8 @@ wss.on('connection', (ws, req) => {
                         resp: 'txtMsg',
                         key: p.key,
                         uid: uid,
-                        sig: p.sig
+                        sig: p.sig,
+                        purpose: p.purpose,
                     }));
                     return;
                 } else {
@@ -194,41 +196,9 @@ wss.on('connection', (ws, req) => {
                         gid: p.gid,
                         key: p.key,
                         uid: uid,
-                        sig: p.sig
+                        sig: p.sig,
+                        purpose: p.purpose,
                     });
-                    /*db.collection("users").where("messages", "==", "messages").limit(1).get().then(snapshot => {
-                        if (snapshot.exists) {
-                            console.log("Document does not exist, creating one now");
-                            console.log("id: ", p.id);
-                            db.collection('users').doc(p.id).set({
-                                messages: [{
-                                    data: p.data,
-                                    iv: p.iv,
-                                    gid: p.gid,
-                                    target: p.id,
-                                    resp: 'txtMsg',
-                                    key: p.key,
-                                    uid: uid,
-                                    sig: p.sig
-                                }]
-                            });
-                        }
-                        else {
-                            console.log("Document exists, appending");
-                            db.collection('users').doc(p.id).update({
-                                messages: admin.firestore.FieldValue.arrayUnion({
-                                    data: p.data,
-                                    iv: p.iv,
-                                    gid: p.gid,
-                                    target: p.id,
-                                    resp: 'txtMsg',
-                                    key: p.key,
-                                    uid: uid,
-                                    sig: p.sig
-                                })
-                            });
-                        }
-                    });*/
                 }
                 break;
             case 'updatePub':
