@@ -149,6 +149,7 @@ wss.on('connection', (ws, req) => {
                     uid: d.uid,
                     sig: d.sig,
                     purpose: d.purpose,
+                    time: d.time,
                 }));
                 await db.collection('chats').doc('offline').collection(uid).doc(doc.id).delete();
                 // await doc.delete();
@@ -186,6 +187,7 @@ wss.on('connection', (ws, req) => {
                         uid: uid,
                         sig: p.sig,
                         purpose: p.purpose,
+                        time: +new Date(),
                     }));
                     return;
                 } else {
@@ -198,6 +200,7 @@ wss.on('connection', (ws, req) => {
                         uid: uid,
                         sig: p.sig,
                         purpose: p.purpose,
+                        time: +new Date(),
                     });
                 }
                 break;
