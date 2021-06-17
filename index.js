@@ -96,13 +96,16 @@ wss.on('connection', (ws, req) => {
 
     setInterval(() => errAttempts++, 10000); // You get one "life" every 10s
 
+    if (bannedIP.includes(req.headers['x-forwarded-for'] || req.connection.remoteAddress) || bannedUID.includes(info.uid)) {
+        ws.close();
+        return;
+    }
+
     setTimeout(() => {
         if (first && !uid) {
             ws.close();
             console.log('Closed client websocket');
         }
-        console.log(uid)
-        console.log("ayo2")
     }, 500); // 500ms for client to identify itself
 
     ws.send('hi');
@@ -123,15 +126,17 @@ wss.on('connection', (ws, req) => {
         if (first) {
             const info = tryParseJSON(d);
             first = false;
-            if (!info || !info.uid || onlineUIDs.includes(info.uid)) {
+
+            if (!info || !info.uid) {
                 close();
                 ws.close();
                 return;
             }
-            if (bannedIP.includes(req.headers['x-forwarded-for'] || req.connection.remoteAddress)||bannedUID.includes(info.uid)) {
-                ws.close();
-                return;
+            if (onlineUIDs.includes(info.uid)) {
+                onlineUIDs[info.uid].send(JSON.stringify({err: 'anotherOnline'}));
+                onlineUIDs[info.uid].close();
             }
+
             onlineUIDs.push(info.uid);
             uid = info.uid;
             wsObjs[uid] = ws;
@@ -154,6 +159,7 @@ wss.on('connection', (ws, req) => {
                 await db.collection('chats').doc('offline').collection(uid).doc(doc.id).delete();
                 // await doc.delete();
             });
+            await ws.send('connected');
             return;
         }
 
