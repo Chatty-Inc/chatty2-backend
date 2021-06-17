@@ -96,7 +96,7 @@ wss.on('connection', (ws, req) => {
 
     setInterval(() => errAttempts++, 10000); // You get one "life" every 10s
 
-    if (bannedIP.includes(req.headers['x-forwarded-for'] || req.connection.remoteAddress) || bannedUID.includes(info.uid)) {
+    if (bannedIP.includes(req.headers['x-forwarded-for'] || req.connection.remoteAddress)) {
         ws.close();
         return;
     }
@@ -127,7 +127,7 @@ wss.on('connection', (ws, req) => {
             const info = tryParseJSON(d);
             first = false;
 
-            if (!info || !info.uid) {
+            if (!info || !info.uid || bannedUID.includes(info.uid)) {
                 close();
                 ws.close();
                 return;
